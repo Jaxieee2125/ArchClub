@@ -12,10 +12,31 @@ def setup_products():
 @pytest.mark.parametrize(
     "search_keyword, expected_count",
     [
+        # --- TÌM KIẾM CƠ BẢN ---
         ("Thắng", 2),
         ("Giấy", 1),
-        ("TỪ-KHÓA-ẢO-MA", 0),
-        ("thẮnG", 0), # Giữ lại làm 1 Failed Case nhỏ: SQLite chưa hỗ trợ tìm kiếm không dấu/hoa thường tốt tiếng Việt
+        
+        # --- ĐA NGÔN NGỮ & UNICODE ---
+        ("Thắng", 2), # Có dấu
+        ("thang", 2), # Không dấu (Tuỳ thuộc Database setup)
+        ("オタク", 0), # Tiếng Nhật
+        ("😊🎵", 0), # Emoji
+        
+        # --- STRING FORMATTING ---
+        ("  Thắng  ", 2), # Dư khoảng trắng
+        ("ThắNg", 2), # Bất quy tắc hoa thường
+        
+        # --- SECURITY & SPECIAL CHARS ---
+        ("%", 0), # Wildcard SQL (Tránh việc nó load toàn bộ DB)
+        ("_", 0), # Wildcard SQL
+        ("'", 0), # Nháy đơn (Hay gây lỗi 500 nếu query thuần)
+        ('"', 0), # Nháy kép
+        ("\\", 0), # Ký tự escape
+        ("<img src=x onerror=alert('hack')>", 0), # XSS
+        
+        # --- STRESS TESTING TÌM KIẾM ---
+        ("a" * 1000, 0), # Gõ chuỗi dài 1000 ký tự xem có sập không
+        ("", 2), # Chuỗi rỗng -> load tất cả
     ]
 )
 def test_search_and_filter_ddt(setup_products, search_keyword, expected_count):

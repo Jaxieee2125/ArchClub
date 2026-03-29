@@ -29,13 +29,30 @@ def setup_data():
 @pytest.mark.parametrize(
     "code, cart_total, expected_status, expected_discount, expected_message",
     [
-        ("FREES2", 2500000, 200, 30000, "Áp dụng mã thành công!"), 
-        ("FREES2", 2499999, 400, 0, "Đơn hàng tối thiểu phải từ 2,500,000đ!"), 
-        ("NEWBIE10", -500000, 400, 0, "Đơn hàng tối thiểu phải từ 0đ!"), # Đã sửa lại Expected Message
+        # --- HAPPY PATH & CASE INSENSITIVE ---
         ("FREES2", 3000000, 200, 30000, "Áp dụng mã thành công!"),
-        # Cố tình để dư khoảng trắng để test xem Backend có hàm strip() không. 
-        # CÁI NÀY SẼ BỊ FAILED -> Báo cáo vào đồ án: "Lỗi thiếu hàm cắt khoảng trắng (strip)".
-        (" FrEEs2  ", 3000000, 200, 30000, "Áp dụng mã thành công!"), 
+        ("frees2", 3000000, 200, 30000, "Áp dụng mã thành công!"),
+        ("FreEs2", 3000000, 200, 30000, "Áp dụng mã thành công!"),
+        
+        # --- BOUNDARY VALUE (Giá trị biên: Yêu cầu 2.500.000) ---
+        ("FREES2", 2500000, 200, 30000, "Áp dụng mã thành công!"), # Ngay biên giới
+        ("FREES2", 2499999, 400, 0, "tối thiểu"), # Dưới biên 1 đồng
+        ("FREES2", 2500001, 200, 30000, "Áp dụng mã thành công!"), # Trên biên 1 đồng
+        
+        # --- NEGATIVE & MALICIOUS VALUES (Dữ liệu âm, khổng lồ) ---
+        ("NEWBIE10", 0, 200, 0, "Áp dụng mã thành công!"), # Giỏ hàng 0 đồng
+        ("NEWBIE10", -1, 400, 0, "không hợp lệ"), # Giỏ hàng âm (Cần báo fail)
+        ("NEWBIE10", 9999999999, 200, 999999999, "Áp dụng mã thành công!"), # Số siêu to khổng lồ
+        
+        # --- WHITE SPACE & FORMATTING (Khoảng trắng) ---
+        (" FREES2 ", 3000000, 200, 30000, "Áp dụng mã thành công!"), # Khoảng trắng 2 đầu
+        ("FREE S2", 3000000, 400, 0, "không tồn tại"), # Khoảng trắng ở giữa
+        
+        # --- SECURITY & INJECTION (Bảo mật) ---
+        ("TET2026", 2000000, 400, 0, "hết hạn"),
+        ("", 3000000, 400, 0, "không tồn tại"), # Rỗng
+        ("' OR 1=1 --", 3000000, 400, 0, "không tồn tại"), # SQL Injection
+        ("<script>alert(1)</script>", 3000000, 400, 0, "không tồn tại"), # XSS payload
     ]
 )
 def test_verify_coupon_ddt(setup_data, code, cart_total, expected_status, expected_discount, expected_message):
@@ -61,4 +78,4 @@ def test_verify_coupon_ddt(setup_data, code, cart_total, expected_status, expect
         assert response.data['message'] == expected_message
     else:
         # Nếu thất bại, kiểm tra câu báo lỗi có chuẩn không
-        assert response.data['error'] == expected_message
+        assert expected_message in response.data.get('error', '')

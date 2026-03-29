@@ -19,8 +19,24 @@ def get_client_ip(request):
 def add_order_items(request):
     user = request.user
     data = request.data
+    
+    
 
     orderItems = data.get('orderItems')
+    
+    # 🚨 1. CHẶN GIỎ HÀNG RỖNG
+    if not orderItems or len(orderItems) == 0:
+        return Response({'error': 'Giỏ hàng trống'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 🚨 2. CHẶN ĐỊA CHỈ RỖNG, NULL, HOẶC CHỨA MÃ ĐỘC (XSS)
+    shipping_address = data.get('shippingAddress', '')
+    if not shipping_address or str(shipping_address).strip() == '' or shipping_address == 'None' or '<script>' in str(shipping_address):
+        return Response({'error': 'Địa chỉ giao hàng không hợp lệ'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 🚨 3. CHẶN PHƯƠNG THỨC THANH TOÁN BẬY BẠ
+    payment_method = data.get('paymentMethod')
+    if payment_method not in ['COD', 'VNPAY']:
+        return Response({'error': 'Phương thức thanh toán không hợp lệ'}, status=status.HTTP_400_BAD_REQUEST)
 
     if orderItems and len(orderItems) == 0:
         return Response({'detail': 'Giỏ hàng của bạn đang trống!'}, status=status.HTTP_400_BAD_REQUEST)
@@ -40,6 +56,22 @@ def add_order_items(request):
                     is_paid=False,
                     status='Pending'
                 )
+                
+                for i in orderItems:
+                    try:
+                        qty = int(i['qty'])
+                        if qty <= 0:
+                            raise ValueError("Số lượng phải lớn hơn 0")
+                    except (ValueError, TypeError):
+                        # Cố tình hack số lượng âm hoặc điền chữ -> Xóa đơn vừa tạo và báo lỗi
+                        order.delete()
+                        return Response({'error': 'Số lượng sản phẩm không hợp lệ'}, status=status.HTTP_400_BAD_REQUEST)
+
+                    product = Product.objects.get(id=i['product_id'])
+                    # Kiểm tra tồn kho
+                    if product.stock < qty:
+                        order.delete()
+                        return Response({'error': f'Sản phẩm không đủ số lượng'}, status=status.HTTP_400_BAD_REQUEST)
 
                 # 2. Tạo Chi tiết đơn (OrderItem) và Trừ tồn kho (Stock)
                 for i in orderItems:
@@ -112,7 +144,7 @@ def get_my_orders(request):
 @api_view(['POST'])
 def verify_coupon(request):
     code = request.data.get('code')
-    cart_total = request.data.get('cart_total')
+    cart_total = request.data.get('cart_total', 0)
 
     try:
         # Tìm mã code (không phân biệt chữ hoa chữ thường)

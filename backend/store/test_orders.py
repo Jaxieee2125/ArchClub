@@ -21,22 +21,25 @@ def setup_checkout():
 @pytest.mark.parametrize(
     "buy_qty, expected_status, expected_stock_left",
     [
-        # --- ĐÚNG QUY TRÌNH (HAPPY PATH) ---
-        (1, 201, 4), # Mua 1
-        (5, 201, 0), # Mua sạch kho
+        # --- EQUIVALENCE PARTITIONING (Các vùng dữ liệu) ---
+        (1, 201, 4), # Vùng hợp lệ (Valid)
+        (5, 201, 0), # Vùng biên cực đại (Max valid)
+        (6, 400, 5), # Vùng không hợp lệ (Invalid - Over stock)
         
-        # --- VƯỢT QUÁ GIỚI HẠN (OUT OF BOUNDS) ---
-        (6, 400, 5), # Kho có 5, đòi mua 6 -> Chặn
-        (9999999, 400, 5), # DDoS số lượng khổng lồ -> Chặn
+        # --- NEGATIVE TESTING (Hack số lượng) ---
+        (0, 400, 5), # Mua 0 món
+        (-1, 400, 5), # Mua số âm
+        (-9999, 400, 5), # Âm khổng lồ
         
-        # --- DỮ LIỆU ĐỘC HẠI (MALICIOUS DATA) ---
-        (0, 400, 5), # Mua 0 món -> Chặn
-        (-5, 400, 5), # Hack số lượng âm để gian lận tiền -> Chặn
+        # --- DATA TYPE MISMATCH (Sai kiểu dữ liệu) ---
+        ("một", 400, 5), # Chữ tiếng Việt
+        ("1", 201, 4), # Chữ dạng số (Backend DRF phải tự ép kiểu được)
+        (1.5, 400, 5), # Số thập phân (Float)
+        (True, 400, 5), # Boolean
+        (None, 400, 5), # Dữ liệu rỗng (Null)
         
-        # --- SAI KIỂU DỮ LIỆU (DATA TYPE MISMATCH) ---
-        # Lưu ý: Django Rest Framework có thể tự ép kiểu, hoặc quăng lỗi 400
-        ("hai", 400, 5), # Cố tình gửi chữ thay vì số
-        (1.5, 400, 5), # Cố tình gửi số thập phân (đĩa than không bán rưỡi)
+        # --- OVERFLOW TESTING (Tràn bộ nhớ) ---
+        (999999999999999999, 400, 5), # Tràn số nguyên
     ]
 )
 def test_inventory_deduction_ddt(setup_checkout, buy_qty, expected_status, expected_stock_left):
@@ -46,10 +49,15 @@ def test_inventory_deduction_ddt(setup_checkout, buy_qty, expected_status, expec
     # Bắt buộc phải đăng nhập thì mới được đặt hàng
     client.force_authenticate(user=user)
     
+    try:
+        total_price = product.price * int(buy_qty)
+    except (ValueError, TypeError):
+        total_price = 0
+    
     # Cấu trúc Data giỏ hàng gửi lên API
     payload = {
         "shippingAddress": "123 Đường Test, Quận 1",
-        "totalPrice": product.price * buy_qty,
+        "totalPrice": total_price,
         "paymentMethod": "COD",
         "orderItems": [
             {"product_id": product.id, "qty": buy_qty, "price": product.price}

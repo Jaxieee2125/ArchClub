@@ -15,16 +15,23 @@ def setup_checkout_data():
 @pytest.mark.parametrize(
     "is_logged_in, order_items, address, payment_method, expected_status",
     [
-        # --- HAPPY PATH (Mọi thứ hoàn hảo) ---
-        (True, [{"qty": 1}], "123 Đường A, Quận 1", "COD", 201), 
+        # --- HAPPY PATH ---
+        (True, [{"qty": 1}], "123 Đường A", "COD", 201),
+        (True, [{"qty": 1}], "123 Đường A", "VNPAY", 201),
         
-        # --- AUTHENTICATION (Bảo mật tài khoản) ---
-        (False, [{"qty": 1}], "123 Đường A, Quận 1", "COD", 401), # Chưa đăng nhập mà dám gọi API tạo đơn -> Chặn (401 Unauthorized)
+        # --- AUTHENTICATION ---
+        (False, [{"qty": 1}], "123 Đường A", "COD", 401),
         
-        # --- VALIDATION (Thiếu dữ liệu bắt buộc) ---
-        (True, [], "123 Đường A, Quận 1", "COD", 400), # Giỏ hàng trống rỗng -> Chặn (400 Bad Request)
-        (True, [{"qty": 1}], "", "COD", 400), # Không nhập địa chỉ giao hàng -> Chặn
-        (True, [{"qty": 1}], "123 Đường A, Quận 1", "", 400), # Không chọn phương thức thanh toán -> Chặn
+        # --- MISSING FIELDS (Thiếu dữ liệu) ---
+        (True, [], "123 Đường A", "COD", 400), # Rỗng Items
+        (True, [{"qty": 1}], "", "COD", 400), # Rỗng địa chỉ
+        (True, [{"qty": 1}], None, "COD", 400), # Null địa chỉ
+        (True, [{"qty": 1}], "123 Đường A", "", 400), # Rỗng payment
+        (True, [{"qty": 1}], "123 Đường A", "TIEN_MAT_GIAO_TAY", 400), # Payment method không tồn tại trong hệ thống
+        
+        # --- MALICIOUS PAYLOADS ---
+        (True, [{"qty": -1}], "123 Đường A", "COD", 400), # Lồng số âm vào mảng
+        (True, [{"qty": 1}], "<script>alert('hack_address')</script>", "COD", 400), # XSS vào địa chỉ
     ]
 )
 def test_checkout_validation_ddt(setup_checkout_data, is_logged_in, order_items, address, payment_method, expected_status):
