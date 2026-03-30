@@ -43,7 +43,7 @@ def pytest_sessionfinish(session, exitstatus):
     worksheet.write('A3', 'Module/Feature:', bold_cell_fmt)
     worksheet.write('B3', 'Backend API', cell_fmt)
     worksheet.write('C3', 'Tested By:', bold_cell_fmt)
-    worksheet.write('D3', 'Sinh viên thực hiện', cell_fmt)
+    worksheet.write('D3', 'Nguyễn Thành Thái', cell_fmt)
 
     # --- BẢNG THỐNG KÊ DATA ---
     headers = ['Function Name', 'Passed', 'Failed', 'Total Cases']

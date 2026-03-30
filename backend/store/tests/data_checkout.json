@@ -1,0 +1,42 @@
+[
+    {
+        "description": "Checkout hợp lệ với COD",
+        "is_logged_in": true, "order_items": [{"qty": 1}], "address": "123 Đường A", "payment_method": "COD", "expected_status": 201
+    },
+    {
+        "description": "Checkout hợp lệ với VNPAY",
+        "is_logged_in": true, "order_items": [{"qty": 1}], "address": "123 Đường A", "payment_method": "VNPAY", "expected_status": 201
+    },
+    {
+        "description": "Lỗi chưa đăng nhập (Auth Fail)",
+        "is_logged_in": false, "order_items": [{"qty": 1}], "address": "123 Đường A", "payment_method": "COD", "expected_status": 401
+    },
+    {
+        "description": "Lỗi giỏ hàng trống",
+        "is_logged_in": true, "order_items": [], "address": "123 Đường A", "payment_method": "COD", "expected_status": 400
+    },
+    {
+        "description": "Lỗi bỏ trống địa chỉ (Rỗng)",
+        "is_logged_in": true, "order_items": [{"qty": 1}], "address": "", "payment_method": "COD", "expected_status": 400
+    },
+    {
+        "description": "Lỗi bỏ trống địa chỉ (Null)",
+        "is_logged_in": true, "order_items": [{"qty": 1}], "address": null, "payment_method": "COD", "expected_status": 400
+    },
+    {
+        "description": "Lỗi bỏ trống phương thức thanh toán",
+        "is_logged_in": true, "order_items": [{"qty": 1}], "address": "123 Đường A", "payment_method": "", "expected_status": 400
+    },
+    {
+        "description": "Lỗi phương thức thanh toán không tồn tại",
+        "is_logged_in": true, "order_items": [{"qty": 1}], "address": "123 Đường A", "payment_method": "TIEN_MAT_GIAO_TAY", "expected_status": 400
+    },
+    {
+        "description": "Malicious: Lồng số lượng âm",
+        "is_logged_in": true, "order_items": [{"qty": -1}], "address": "123 Đường A", "payment_method": "COD", "expected_status": 400
+    },
+    {
+        "description": "Malicious: Tiêm mã độc XSS vào địa chỉ",
+        "is_logged_in": true, "order_items": [{"qty": 1}], "address": "<script>alert('hack_address')</script>", "payment_method": "COD", "expected_status": 400
+    }
+]

@@ -1,0 +1,50 @@
+[
+    {
+        "description": "Vùng hợp lệ: Mua 1 sản phẩm",
+        "buy_qty": 1, "expected_status": 201, "expected_stock_left": 4
+    },
+    {
+        "description": "Vùng biên cực đại: Mua vét sạch 5 sản phẩm",
+        "buy_qty": 5, "expected_status": 201, "expected_stock_left": 0
+    },
+    {
+        "description": "Vùng không hợp lệ: Mua lố tồn kho (6 sản phẩm)",
+        "buy_qty": 6, "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Negative Testing: Mua 0 sản phẩm",
+        "buy_qty": 0, "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Negative Testing: Gian lận số lượng âm (-1)",
+        "buy_qty": -1, "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Negative Testing: Gian lận số âm khổng lồ",
+        "buy_qty": -9999, "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Data Mismatch: Gửi chữ thay vì số",
+        "buy_qty": "một", "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Data Mismatch: Gửi chuỗi số (Backend tự ép kiểu)",
+        "buy_qty": "1", "expected_status": 201, "expected_stock_left": 4
+    },
+    {
+        "description": "Data Mismatch: Gửi số thập phân",
+        "buy_qty": 1.5, "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Data Mismatch: Gửi kiểu Boolean (True)",
+        "buy_qty": true, "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Data Mismatch: Gửi dữ liệu rỗng (Null)",
+        "buy_qty": null, "expected_status": 400, "expected_stock_left": 5
+    },
+    {
+        "description": "Overflow Testing: Gửi số nguyên tràn bộ nhớ",
+        "buy_qty": 999999999999999999, "expected_status": 400, "expected_stock_left": 5
+    }
+]

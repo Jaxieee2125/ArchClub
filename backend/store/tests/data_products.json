@@ -1,0 +1,67 @@
+[
+    {
+        "description": "Tìm kiếm cơ bản 1",
+        "search_keyword": "Thắng", "expected_count": 2
+    },
+    {
+        "description": "Tìm kiếm cơ bản 2",
+        "search_keyword": "Giấy", "expected_count": 1
+    },
+    {
+        "description": "Đa ngôn ngữ: Có dấu",
+        "search_keyword": "Thắng", "expected_count": 2
+    },
+    {
+        "description": "Đa ngôn ngữ: Không dấu",
+        "search_keyword": "thang", "expected_count": 2
+    },
+    {
+        "description": "Đa ngôn ngữ: Tiếng Nhật",
+        "search_keyword": "オタク", "expected_count": 0
+    },
+    {
+        "description": "Đa ngôn ngữ: Emoji",
+        "search_keyword": "😊🎵", "expected_count": 0
+    },
+    {
+        "description": "Định dạng: Dư khoảng trắng",
+        "search_keyword": "  Thắng  ", "expected_count": 2
+    },
+    {
+        "description": "Định dạng: Hoa thường lộn xộn",
+        "search_keyword": "ThắNg", "expected_count": 2
+    },
+    {
+        "description": "Security: Wildcard SQL (%)",
+        "search_keyword": "%", "expected_count": 0
+    },
+    {
+        "description": "Security: Wildcard SQL (_)",
+        "search_keyword": "_", "expected_count": 0
+    },
+    {
+        "description": "Security: Nháy đơn",
+        "search_keyword": "'", "expected_count": 0
+    },
+    {
+        "description": "Security: Nháy kép",
+        "search_keyword": "\"", "expected_count": 0
+    },
+    {
+        "description": "Security: Ký tự Escape",
+        "search_keyword": "\\", "expected_count": 0
+    },
+    {
+        "description": "Security: XSS Payload",
+        "search_keyword": "<img src=x onerror=alert('hack')>", "expected_count": 0
+    },
+    {
+        "description": "Stress Test: Chuỗi siêu dài 1000 ký tự",
+        "search_keyword": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 
+        "expected_count": 0
+    },
+    {
+        "description": "Truyền chuỗi rỗng",
+        "search_keyword": "", "expected_count": 2
+    }
+]

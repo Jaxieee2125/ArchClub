@@ -1,7 +1,27 @@
 import pytest
+import json
+import os
 from rest_framework.test import APIClient
 from store.models import Product, Artist, Order
 from django.contrib.auth.models import User
+
+# ---------------------------------------------------------
+# HÀM ĐỌC DỮ LIỆU TỪ FILE JSON
+# ---------------------------------------------------------
+def load_test_data():
+    file_path = os.path.join(os.path.dirname(__file__), 'data_orders.json')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        
+    return [
+        (
+            item['buy_qty'], 
+            item['expected_status'], 
+            item['expected_stock_left']
+        ) for item in data
+    ]
+
+# ---------------------------------------------------------
 
 @pytest.fixture
 def setup_checkout():
@@ -16,31 +36,11 @@ def setup_checkout():
     )
     return user, product
 
-# BẢNG DATA-DRIVEN TESTING CHO TỒN KHO
+# BẢNG DATA-DRIVEN ĐÃ ĐƯỢC TÁCH RA FILE JSON
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "buy_qty, expected_status, expected_stock_left",
-    [
-        # --- EQUIVALENCE PARTITIONING (Các vùng dữ liệu) ---
-        (1, 201, 4), # Vùng hợp lệ (Valid)
-        (5, 201, 0), # Vùng biên cực đại (Max valid)
-        (6, 400, 5), # Vùng không hợp lệ (Invalid - Over stock)
-        
-        # --- NEGATIVE TESTING (Hack số lượng) ---
-        (0, 400, 5), # Mua 0 món
-        (-1, 400, 5), # Mua số âm
-        (-9999, 400, 5), # Âm khổng lồ
-        
-        # --- DATA TYPE MISMATCH (Sai kiểu dữ liệu) ---
-        ("một", 400, 5), # Chữ tiếng Việt
-        ("1", 201, 4), # Chữ dạng số (Backend DRF phải tự ép kiểu được)
-        (1.5, 400, 5), # Số thập phân (Float)
-        (True, 400, 5), # Boolean
-        (None, 400, 5), # Dữ liệu rỗng (Null)
-        
-        # --- OVERFLOW TESTING (Tràn bộ nhớ) ---
-        (999999999999999999, 400, 5), # Tràn số nguyên
-    ]
+    load_test_data() # Nạp kịch bản từ file ngoài vào
 )
 def test_inventory_deduction_ddt(setup_checkout, buy_qty, expected_status, expected_stock_left):
     user, product = setup_checkout
@@ -71,6 +71,5 @@ def test_inventory_deduction_ddt(setup_checkout, buy_qty, expected_status, expec
     assert response.status_code == expected_status
     
     # 2. Assert Tồn kho thực tế trong Database
-    # Phải query lại vào Database để lấy số liệu mới nhất sau khi API chạy
     product.refresh_from_db()
     assert product.stock == expected_stock_left

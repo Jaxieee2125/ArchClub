@@ -1,7 +1,30 @@
 import pytest
+import json
+import os
 from rest_framework.test import APIClient
 from store.models import Product, Artist
 from django.contrib.auth.models import User
+
+# ---------------------------------------------------------
+# HÀM ĐỌC DỮ LIỆU TỪ FILE JSON
+# ---------------------------------------------------------
+def load_test_data():
+    file_path = os.path.join(os.path.dirname(__file__), 'data_checkout.json')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    
+    # Trích xuất các tham số từ JSON (bỏ qua cột description)
+    return [
+        (
+            item['is_logged_in'], 
+            item['order_items'], 
+            item['address'], 
+            item['payment_method'], 
+            item['expected_status']
+        ) for item in data
+    ]
+
+# ---------------------------------------------------------
 
 @pytest.fixture
 def setup_checkout_data():
@@ -10,29 +33,11 @@ def setup_checkout_data():
     product = Product.objects.create(name="Album 3", format="CD", artist=artist, price=250000, stock=10)
     return user, product
 
-# BẢNG DATA-DRIVEN CHO FORM CHECKOUT
+# BẢNG DATA-DRIVEN ĐÃ ĐƯỢC TÁCH RA FILE JSON
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "is_logged_in, order_items, address, payment_method, expected_status",
-    [
-        # --- HAPPY PATH ---
-        (True, [{"qty": 1}], "123 Đường A", "COD", 201),
-        (True, [{"qty": 1}], "123 Đường A", "VNPAY", 201),
-        
-        # --- AUTHENTICATION ---
-        (False, [{"qty": 1}], "123 Đường A", "COD", 401),
-        
-        # --- MISSING FIELDS (Thiếu dữ liệu) ---
-        (True, [], "123 Đường A", "COD", 400), # Rỗng Items
-        (True, [{"qty": 1}], "", "COD", 400), # Rỗng địa chỉ
-        (True, [{"qty": 1}], None, "COD", 400), # Null địa chỉ
-        (True, [{"qty": 1}], "123 Đường A", "", 400), # Rỗng payment
-        (True, [{"qty": 1}], "123 Đường A", "TIEN_MAT_GIAO_TAY", 400), # Payment method không tồn tại trong hệ thống
-        
-        # --- MALICIOUS PAYLOADS ---
-        (True, [{"qty": -1}], "123 Đường A", "COD", 400), # Lồng số âm vào mảng
-        (True, [{"qty": 1}], "<script>alert('hack_address')</script>", "COD", 400), # XSS vào địa chỉ
-    ]
+    load_test_data() # Gọi dữ liệu lên tự động
 )
 def test_checkout_validation_ddt(setup_checkout_data, is_logged_in, order_items, address, payment_method, expected_status):
     user, product = setup_checkout_data

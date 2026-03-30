@@ -1,0 +1,62 @@
+[
+    {
+        "description": "Mã hợp lệ (Happy Path)",
+        "code": "FREES2", "cart_total": 3000000, "expected_status": 200, "expected_discount": 30000, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Mã chữ thường (Case Insensitive)",
+        "code": "frees2", "cart_total": 3000000, "expected_status": 200, "expected_discount": 30000, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Mã hoa thường lộn xộn",
+        "code": "FreEs2", "cart_total": 3000000, "expected_status": 200, "expected_discount": 30000, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Ngay biên giới tối thiểu (2.500.000)",
+        "code": "FREES2", "cart_total": 2500000, "expected_status": 200, "expected_discount": 30000, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Dưới biên 1 đồng",
+        "code": "FREES2", "cart_total": 2499999, "expected_status": 400, "expected_discount": 0, "expected_message": "tối thiểu"
+    },
+    {
+        "description": "Trên biên 1 đồng",
+        "code": "FREES2", "cart_total": 2500001, "expected_status": 200, "expected_discount": 30000, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Giỏ hàng 0 đồng với mã %",
+        "code": "NEWBIE10", "cart_total": 0, "expected_status": 200, "expected_discount": 0, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Malicious: Giỏ hàng giá trị âm",
+        "code": "NEWBIE10", "cart_total": -1, "expected_status": 400, "expected_discount": 0, "expected_message": "không hợp lệ"
+    },
+    {
+        "description": "Stress: Giỏ hàng siêu to khổng lồ",
+        "code": "NEWBIE10", "cart_total": 9999999999, "expected_status": 200, "expected_discount": 999999999, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Dư khoảng trắng ở 2 đầu",
+        "code": " FREES2 ", "cart_total": 3000000, "expected_status": 200, "expected_discount": 30000, "expected_message": "Áp dụng mã thành công!"
+    },
+    {
+        "description": "Dư khoảng trắng ở giữa",
+        "code": "FREE S2", "cart_total": 3000000, "expected_status": 400, "expected_discount": 0, "expected_message": "không tồn tại"
+    },
+    {
+        "description": "Mã đã hết hạn sử dụng",
+        "code": "TET2026", "cart_total": 2000000, "expected_status": 400, "expected_discount": 0, "expected_message": "hết hạn"
+    },
+    {
+        "description": "Bỏ trống mã giảm giá",
+        "code": "", "cart_total": 3000000, "expected_status": 400, "expected_discount": 0, "expected_message": "không tồn tại"
+    },
+    {
+        "description": "Security: Thử SQL Injection",
+        "code": "' OR 1=1 --", "cart_total": 3000000, "expected_status": 400, "expected_discount": 0, "expected_message": "không tồn tại"
+    },
+    {
+        "description": "Security: Thử XSS Payload",
+        "code": "<script>alert(1)</script>", "cart_total": 3000000, "expected_status": 400, "expected_discount": 0, "expected_message": "không tồn tại"
+    }
+]
